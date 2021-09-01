@@ -1,5 +1,7 @@
 from django.db import models
 
+from core.models import TimeStamp
+
 
 class Type(models.Model):
     name = models.CharField(max_length=32)
@@ -24,16 +26,18 @@ class Section(models.Model):
         db_table = "sections"
 
 
-class Product(models.Model):
+class Product(TimeStamp):
     name = models.CharField(max_length=64)
     price = models.DecimalField(max_digits=18)
     type = models.ForeignKey("Type", on_delete=models.CASCADE)
     fit = models.ForeignKey("Fit", null=True, on_delete=models.SET_NULL)
     description = models.ForeignKey("Description", null=True, on_delete=models.SET_NULL)
-    colors = models.ManyToManyField("Color", related_name="products", through="ProductColor")
-    sizes = models.ManyToManyField("Size", related_name="products", through="ProductSize")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    colors = models.ManyToManyField(
+        "Color", related_name="products", through="ProductColor"
+    )
+    sizes = models.ManyToManyField(
+        "Size", related_name="products", through="ProductSize"
+    )
 
     class Meta:
         db_table = "products"
