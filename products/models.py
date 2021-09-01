@@ -28,7 +28,7 @@ class Section(models.Model):
 
 class Product(TimeStamp):
     name = models.CharField(max_length=64)
-    price = models.DecimalField(max_digits=18)
+    price = models.DecimalField(max_digits=18, decimal_places=0)
     type = models.ForeignKey("Type", on_delete=models.CASCADE)
     fit = models.ForeignKey("Fit", null=True, on_delete=models.SET_NULL)
     description = models.ForeignKey("Description", null=True, on_delete=models.SET_NULL)
