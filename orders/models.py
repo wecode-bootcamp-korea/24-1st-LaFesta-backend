@@ -55,4 +55,4 @@ class OrderItemStatus(TimeStamp):
     status = models.CharField(max_length=32, choices=ORDER_PRODUCTS_CHOICE)
 
     class Meta:
-        db_table = "order_products"
+        db_table = "order_products_status"
