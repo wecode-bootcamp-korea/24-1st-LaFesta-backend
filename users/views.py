@@ -8,17 +8,17 @@ from users.models import User
 class SignupView(View):
     def post(self, request):
         data             = json.loads(request.body)
-        email_validation = re.compile("^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-        password_validation = re.compile("^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$")
+        REGEX_EMAIL = re.compile("^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+        REGEX_PASSWORD = re.compile("^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$")
         password = data['password']
             
         if User.objects.filter(email=data['email']).exists():
             return JsonResponse({'MESSAGE':"ALREADY EXISTED EMAIL"}, status=400)
 
-        if not email_validation.match(data['email']):
+        if not REGEX_EMAIL.match(data['email']):
             return JsonResponse({"MESSAGE":"EMAIL_ERROR"}, status=400)
 
-        if not password_validation.match(data['password']):
+        if not REGEX_PASSWORD.match(data['password']):
             return JsonResponse({"MESSAGE":"PASSWORD_ERROR"}, status=400)
 
         hashed_password  = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
