@@ -29,6 +29,3 @@ class ProductDetailView(View):
         }
 
         return JsonResponse({"results": result}, status=200)
-
-
-class ProductListView(View):
