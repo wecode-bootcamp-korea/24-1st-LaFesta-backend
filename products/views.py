@@ -8,7 +8,6 @@ from .models import Product, Image
 
 class ProductDetailView(View):
     def get(self, request, **kwargs):
-        result = {}
         product = Product.objects.get(id=kwargs["product_id"])
         colors = product.colors.all()
         sizes = product.sizes.all()
