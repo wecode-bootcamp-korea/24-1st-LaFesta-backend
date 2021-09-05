@@ -29,12 +29,17 @@ class OrderProductCartView(View):
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
     def add_to_cart(self, product_id):
-        on_cart = OrderStatus.objects.get(status="OC")
-        default_item_status = OrderItemStatus.objects.get(status="DE")
-        order_created = Order.objects.create(status=on_cart)
+        on_cart_id = OrderStatus.objects.get(status="OC").id
+        default_item_status_id = OrderItemStatus.objects.get(status="DE").id
+        
+        if Order.objects.get(status_id=on_cart_id):
+            order_to_add_id = Order.objects.get(status_id=on_cart_id).id
+        else:
+            order_to_add_id = Order.objects.create(status=on_cart_id).id
+
         OrderItem.objects.create(
             product_id=product_id,
             quantity=1,
-            order=order_created,
-            status=default_item_status,
+            order_id=order_to_add_id,
+            status_id=default_item_status_id,
         )
