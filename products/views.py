@@ -29,43 +29,41 @@ class ProductDetailView(View):
 
         return JsonResponse({"results": result}, status=200)
 
+
 class ProductListView(View):
     def get(self, request): 
         type_id = request.GET["typeId"]
-        
-        page = request.Get["page"]
+        page = int(request.GET["page"])
+
         limit = 28
-        offset = (page-1)*limit
-        
+        offset = (page-1)*limit 
         products = Product.objects.filter(type_id=type_id)
         
-        rooms = products[offset: offset+limit]
-        page_count = len(products)//limit
-        page_range = range(1, page_count+1)
-        
+        all_rooms = list(products.values())[offset: offset+limit]  
+        print(all_rooms)
+        page_count = int(len(products)/limit)
+        page_range = []
+        for i in range(1, page_count+1):
+            page_range.append(i)
+    
         result = {
-            "page"        : page,
-            "rooms"       : rooms,
-            "page_count"  : page_count,
-            "page_range"  : page_range,
-
+            "page" : page,
+            "rooms" : all_rooms, #쿼리셋으로 반환 문제임 
+            "page_count" : page_count,
+            "page_range" : page_range,
             "total_count" : len(products),
-            "products"    : []
+            "products" : []
         }
-        
-        for product in products:
+        for product in products: #쿼리셋을 가져옴 <querset object(1), (2)
             colors = product.colors.all()
-            fits = product.fits.all()
             images = Image.objects.filter(product=product.id)
-
             result["products"].append(
                 {   
-                    "name"      : product.name,
-                    "price"     : product.price,
-                    "color_num" : len(list(colors.value())),
-                    "colors"    : list(colors.value()),
-                    "fits"      : list(fits.values()),
-                    "img_url"   : list(images.values())[:2],                        
+                    "name" : product.name,
+                    "price": product.price,
+                    "colors" : list(colors.values()),
+                    "colors_num" : len(list(colors.values())),
+                    "img_url" : list(images.values())[:2],                        
                 }
             )
         return JsonResponse({"results": result}, status=200)
