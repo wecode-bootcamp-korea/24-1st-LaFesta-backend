@@ -40,7 +40,7 @@ class ProductListView(View):
         products = Product.objects.filter(type_id=type_id)
         
         all_rooms = list(products.values())[offset: offset+limit]  
-        print(all_rooms)
+        
         page_count = int(len(products)/limit)
         page_range = []
         for i in range(1, page_count+1):
