@@ -29,3 +29,30 @@ class CartView(View):
 
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
+
+    def get(self, request):
+        result = []
+        cart_items = (
+            Order.objects.prefetch_related("orderitem_set")
+            .get(status_id=OrderStatus.Status.ON_CART.value)
+            .orderitem_set.all()
+        )
+
+        result = {
+            "products": [
+                {
+                    "product_name": cart_item.product.name,
+                    "total_price": int(cart_item.product.price * cart_item.quantity),
+                }
+                for cart_item in cart_items
+            ]
+        }
+
+        result["total_information"] = {
+            "number_of_products": len(cart_items),
+            "net_price": sum(
+                [product["total_price"] for product in result["products"]]
+            ),
+        }
+
+        return JsonResponse({"result": result}, status=200)
