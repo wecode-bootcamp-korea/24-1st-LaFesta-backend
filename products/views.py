@@ -32,11 +32,8 @@ class ProductDetailView(View):
 
 
 class ProductListView(View):
-    def get(self, request): 
+    def get(self, request):
         try:
-            return JsonResponse({"Message": "Page Does Not Exist"}, status =400)
-
-        except:    
             type_id = request.GET["typeId"]
             page = int(request.GET["page"])
 
@@ -68,7 +65,11 @@ class ProductListView(View):
                         "price"      : product.price,
                         "colors"     : list(product.colors.all().values()),
                         "colors_num" : len(list(product.colors.values())),
+                        "fit"        : product.fit.name,
                         "img_url"    : list(images.values())[:2],                        
                     }
                 )
             return JsonResponse({"results": result}, status=200)
+        
+        except KeyError:
+            return JsonResponse({'MESSAGE':'Page Does Not Exists'}, status=404)
