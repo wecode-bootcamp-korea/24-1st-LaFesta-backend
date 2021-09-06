@@ -1,4 +1,5 @@
 import json
+import math
 
 from django.http import JsonResponse
 from django.views import View
@@ -32,39 +33,42 @@ class ProductDetailView(View):
 
 class ProductListView(View):
     def get(self, request): 
-        type_id = request.GET["typeId"]
-        page = int(request.GET["page"])
+        try:
+            return JsonResponse({"Message": "Page Does Not Exist"}, status =400)
 
-        limit = 28
-        offset = (page-1)*limit 
-        products = Product.objects.filter(type_id=type_id)
+        except:    
+            type_id = request.GET["typeId"]
+            page = int(request.GET["page"])
+
+            limit = 28
+            offset = (page-1)*limit
+            products = Product.objects.filter(type_id=type_id)
+            
+            all_rooms = list(products.values())[offset: offset+limit]  
+            
+            page_count = math.ceil(len(products)/limit)
+            page_range = []
+            for i in range(1, page_count+1):
+                page_range.append(i)
         
-        all_rooms = list(products.values())[offset: offset+limit]  
-        
-        page_count = int(len(products)/limit)
-        page_range = []
-        for i in range(1, page_count+1):
-            page_range.append(i)
-    
-        result = {
-            "page" : page,
-            "rooms" : all_rooms, 
-            "page_count" : page_count,
-            "page_range" : page_range,
-            "total_count" : len(products),
-            "products" : []
-        }
-        for product in products: 
-            colors = product.colors.all()
-            images = Image.objects.filter(product=product.id)
-            result["products"].append(
-                {   
-                    "name" : product.name,
-                    "price": product.price,
-                    "colors" : list(colors.values()),
-                    "colors_num" : len(list(colors.values())),
-                    "img_url" : list(images.values())[:2],                        
-                }
-            )
-        return JsonResponse({"results": result}, status=200)
-        
+            result = {
+                "page"        : page,
+                "rooms"       : all_rooms, 
+                "page_count"  : page_count,
+                "page_range"  : page_range,
+                "total_count" : len(products),
+                "products"    : []
+            }
+            for product in products: 
+                images = product.image_set.filter(product = product.id)
+                
+                result["products"].append(
+                    {   
+                        "name"       : product.name,
+                        "price"      : product.price,
+                        "colors"     : list(product.colors.all().values()),
+                        "colors_num" : len(list(product.colors.values())),
+                        "img_url"    : list(images.values())[:2],                        
+                    }
+                )
+            return JsonResponse({"results": result}, status=200)
