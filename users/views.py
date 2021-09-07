@@ -15,7 +15,7 @@ class SignupView(View):
         password = data['password']
             
         if User.objects.filter(email=data['email']).exists():
-            return JsonResponse({'MESSAGE':"ALREADY EXISTED EMAIL"}, status=400)
+            return JsonResponse({"MESSAGE":"ALREADY EXISTED EMAIL"}, status=400)
 
         if not REGEX_EMAIL.match(data['email']):
             return JsonResponse({"MESSAGE":"EMAIL_ERROR"}, status=400)
