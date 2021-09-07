@@ -34,28 +34,25 @@ class ProductDetailView(View):
 class ProductListView(View):
     def get(self, request):
         try:
-            type_id = request.GET["typeId"]
-            page = int(request.GET["page"])
-
+            type_id = request.GET.get("typeId", None)
+            page = int(request.GET.get("page", 1))
+            
             limit = 28
             offset = (page-1)*limit
+
             products = Product.objects.filter(type_id=type_id)
-            
-            all_rooms = list(products.values())[offset: offset+limit]  
-            
+            all_rooms = list(products.values())[offset: offset+limit]
             page_count = math.ceil(len(products)/limit)
-            page_range = []
-            for i in range(1, page_count+1):
-                page_range.append(i)
-        
+            
             result = {
                 "page"        : page,
-                "rooms"       : all_rooms, 
                 "page_count"  : page_count,
-                "page_range"  : page_range,
+                "rooms"       : all_rooms, 
                 "total_count" : len(products),
                 "products"    : []
             }
+            
+            products = products[offset: offset+limit]
             for product in products: 
                 images = product.image_set.filter(product = product.id)
                 
