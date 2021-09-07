@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from .models import Order, OrderStatus, OrderItem, OrderItemStatus
+from core.utils import login_decorator
 
 
 class CartView(View):
@@ -54,3 +55,30 @@ class CartView(View):
         }
 
         return JsonResponse({"results": results}, status=200)
+
+class OrderView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            confirmed_items = json.loads(request.body)["products"]
+
+            cart_orders = Order.objects.prefetch_related("orderitem_set").get(
+                status_id=OrderStatus.Status.ON_CART.value
+            )
+            cart_orders.user = request.user
+            cart_orders.save()
+
+            cart_items = cart_orders.orderitem_set.all()
+
+            for cart_item in cart_items:
+                id = f"{cart_item.product_id}"
+                if id not in confirmed_items.keys():
+                    cart_item.delete()
+                    cart_item.quantity = confirmed_items[id]["quantity"]
+                else:
+                    cart_item.save()
+
+            return JsonResponse({"message": "ORDER RENEWED"}, status=201)
+
+        except KeyError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
