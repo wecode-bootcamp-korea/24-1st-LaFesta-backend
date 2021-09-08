@@ -91,12 +91,11 @@ class OrderInformationView(View):
     def patch(self, request):
         try:
             data = json.loads(request.body)
+
             order_on_cart = Order.objects.get(
                 status_id=OrderStatus.Status.ON_CART.value
             )
-            
-            if order_on_cart.user is None:
-                order_on_cart.user = request.user
+
             order_on_cart.address = data["address"]
             order_on_cart.receiver = data["receiver"]
             order_on_cart.receiver_phone_number = data["receiver_phone_number"]
