@@ -3,6 +3,7 @@ import math
 
 from django.http import JsonResponse
 from django.views import View
+from django.db.models import Q
 
 from .models import Product, Image
 
@@ -37,17 +38,18 @@ class ProductListView(View):
             type_id = request.GET.get("typeId", None)
             page = int(request.GET.get("page", 1))
             search_keyword = request.GET.get("keyword", None)
-
+            
             limit = 28
             offset = (page - 1) * limit
 
-            if search_keyword:
-                products = Product.objects.filter(name__icontains=search_keyword)
+            q = Q()
 
-                if not products.exists():
-                    return JsonResponse({"MESSAGE": "PRODUCT NOT FOUND"}, status=204)
-            else:
-                products = Product.objects.filter(type_id=type_id)
+            if search_keyword:
+                q &= Q(name__icontains=search_keyword)
+            if type_id:
+                q &= Q(type_id=type_id)
+
+            products = Product.objects.filter(q)
 
             all_rooms = list(products.values())[offset : offset + limit]
             page_count = math.ceil(len(products) / limit)
