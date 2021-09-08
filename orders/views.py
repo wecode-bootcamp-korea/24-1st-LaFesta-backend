@@ -32,27 +32,25 @@ class CartView(View):
 
     def get(self, request):
         result = []
-        cart_items = (
-            Order.objects.prefetch_related("orderitem_set")
-            .get(status_id=OrderStatus.Status.ON_CART.value)
-            .orderitem_set.all()
+        carts = OrderItem.objects.filter(
+            order__status_id=OrderStatus.Status.ON_CART.value
         )
 
-        result = {
+        results = {
             "products": [
                 {
-                    "product_name": cart_item.product.name,
-                    "total_price": int(cart_item.product.price * cart_item.quantity),
+                    "product_id": cart.product.id,
+                    "product_name": cart.product.name,
+                    "quantity": cart.quantity,
+                    "price": cart.product.price,
+                    "total_price": int(cart.product.price * cart.quantity),
                 }
-                for cart_item in cart_items
-            ]
-        }
-
-        result["total_information"] = {
-            "number_of_products": len(cart_items),
+                for cart in carts
+            ],
+            "number_of_products": len(carts),
             "net_price": sum(
                 [product["total_price"] for product in result["products"]]
             ),
         }
 
-        return JsonResponse({"result": result}, status=200)
+        return JsonResponse({"results": results}, status=200)
