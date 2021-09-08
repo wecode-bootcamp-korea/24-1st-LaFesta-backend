@@ -53,29 +53,30 @@ class ProductListView(View):
 
             limit = 28
             offset = (page-1)*limit
-            all_rooms = list(products.values())[offset: offset+limit]
             page_count = math.ceil(len(products)/limit)
             
             result = {
                 "page": page,
                 "page_count": page_count,
-                "rooms": all_rooms,
                 "total_count": len(products),
                 "products": [],
             }
 
             products = products[offset : offset + limit]
+            
             for product in products:
                 images = product.image_set.filter(product=product.id)
 
                 result["products"].append(
                     {
-                        "name": product.name,
-                        "price": product.price,
-                        "colors": list(product.colors.all().values()),
-                        "colors_num": len(list(product.colors.values())),
-                        "fit": product.fit.name,
-                        "img_url": list(images.values())[:2],
+                        "product_id" : product.id,
+                        "name"       : product.name,
+                        "price"      : product.price,
+                        "colors"     : list(product.colors.all().values()),
+                        "colors_num" : len(list(product.colors.values())),
+                        "fit_id"     : product.fit.id,
+                        "fit"        : product.fit.name,
+                        "img_url"    : list(images.values())[:2],
                     }
                 )
             return JsonResponse({"results": result}, status=200)
