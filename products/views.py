@@ -3,8 +3,9 @@ import math
 
 from django.http import JsonResponse
 from django.views import View
+from django.db.models import Q
 
-from .models import Product, Image
+from .models import Product
 
 
 class ProductDetailView(View):
@@ -36,11 +37,22 @@ class ProductListView(View):
         try:
             type_id = request.GET.get("typeId", None)
             page = int(request.GET.get("page", 1))
+            order = request.GET.get("order",'name')
+            color_id = request.GET.getlist("colorId",None) 
+            fit_id = request.GET.getlist("fitId", None)
             
+            q = Q()
+            if type_id:
+                q.add(Q(type_id__in = type_id), Q.AND)    
+            if color_id:
+                q.add(Q(colors__in = color_id), Q.AND)
+            if fit_id:
+                q.add(Q(fit__in = fit_id), Q.AND)
+
+            products = Product.objects.filter(q).order_by(order) 
+
             limit = 28
             offset = (page-1)*limit
-
-            products = Product.objects.filter(type_id=type_id)
             all_rooms = list(products.values())[offset: offset+limit]
             page_count = math.ceil(len(products)/limit)
             
