@@ -56,27 +56,25 @@ class CartView(View):
 
         return JsonResponse({"results": results}, status=200)
 
+
 class OrderView(View):
     @login_decorator
     def post(self, request):
         try:
-            confirmed_items = json.loads(request.body)["products"]
+            data = json.loads(request.body)
 
-            cart_orders = Order.objects.prefetch_related("orderitem_set").get(
-                status_id=OrderStatus.Status.ON_CART.value
+            order = Order.objects.get(
+                status_id=OrderStatus.Status.ON_CART.value, user=request.user
             )
-            cart_orders.user = request.user
-            cart_orders.save()
+            order.orderitem_set.all().delete()
 
-            cart_items = cart_orders.orderitem_set.all()
-
-            for cart_item in cart_items:
-                id = f"{cart_item.product_id}"
-                if id not in confirmed_items.keys():
-                    cart_item.delete()
-                    cart_item.quantity = confirmed_items[id]["quantity"]
-                else:
-                    cart_item.save()
+            for product in data["products"]:
+                OrderItem.objects.create(
+                    product_id=product["product_id"],
+                    quantity=product["quantity"],
+                    status_id=OrderItemStatus.Status.DEFAULT.value,
+                    order=order,
+                )
 
             return JsonResponse({"message": "ORDER RENEWED"}, status=201)
 
