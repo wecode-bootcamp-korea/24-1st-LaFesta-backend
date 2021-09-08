@@ -54,11 +54,9 @@ class SigninView(View):
                 data["password"].encode("utf-8"), user.password.encode("utf-8")
             ):
                 return JsonResponse({"MESSAGE": "INVALID_USER"}, status=401)
-
-            access_token = jwt.encode({"id": user.id}, MY_SECRET_KEY, algorithm="HS256")
-            return JsonResponse(
-                {"MESSAGE": "SUCCESS", "token": access_token}, status=200
-            )
+            
+            access_token = jwt.encode({"id": user.id }, MY_SECRET_KEY , algorithm="HS256")
+            return JsonResponse({"MESSAGE": "SUCCESS", 'token' : access_token, "user_name" : user.name}, status=200)
 
         except KeyError:
             return JsonResponse({"MESSAGE": "KEY_ERROR"}, status=400)
