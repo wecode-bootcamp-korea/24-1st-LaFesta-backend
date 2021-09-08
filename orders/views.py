@@ -60,17 +60,15 @@ class CartView(View):
         return JsonResponse({"results": results}, status=200)
 
     @login_decorator
-    def delete(self, request):
+    def delete(self, request, product_id):
         try:
-            data = json.loads(request.body)
-
             OrderItem.objects.filter(
                 order__status_id=OrderStatus.Status.ON_CART.value,
-                product_id=data["product_id"],
+                product_id=product_id,
             ).delete()
 
             return JsonResponse(
-                {"message": f"PRODUCT {data['product_id']} DELETED"}, status=200
+                {"message": f"PRODUCT {product_id} DELETED"}, status=200
             )
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
