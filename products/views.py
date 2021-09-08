@@ -3,6 +3,7 @@ import math
 
 from django.http import JsonResponse
 from django.views import View
+from django.db.models import Q
 
 from .models import Product, Image
 
@@ -36,37 +37,46 @@ class ProductListView(View):
         try:
             type_id = request.GET.get("typeId", None)
             page = int(request.GET.get("page", 1))
+            search_keyword = request.GET.get("keyword", None)
             
             limit = 28
-            offset = (page-1)*limit
+            offset = (page - 1) * limit
 
-            products = Product.objects.filter(type_id=type_id)
-            all_rooms = list(products.values())[offset: offset+limit]
-            page_count = math.ceil(len(products)/limit)
-            
+            q = Q()
+
+            if search_keyword:
+                q &= Q(name__icontains=search_keyword)
+            if type_id:
+                q &= Q(type_id=type_id)
+
+            products = Product.objects.filter(q)
+
+            all_rooms = list(products.values())[offset : offset + limit]
+            page_count = math.ceil(len(products) / limit)
+
             result = {
-                "page"        : page,
-                "page_count"  : page_count,
-                "rooms"       : all_rooms, 
-                "total_count" : len(products),
-                "products"    : []
+                "page": page,
+                "page_count": page_count,
+                "rooms": all_rooms,
+                "total_count": len(products),
+                "products": [],
             }
-            
-            products = products[offset: offset+limit]
-            for product in products: 
-                images = product.image_set.filter(product = product.id)
-                
+
+            products = products[offset : offset + limit]
+            for product in products:
+                images = product.image_set.filter(product=product.id)
+
                 result["products"].append(
-                    {   
-                        "name"       : product.name,
-                        "price"      : product.price,
-                        "colors"     : list(product.colors.all().values()),
-                        "colors_num" : len(list(product.colors.values())),
-                        "fit"        : product.fit.name,
-                        "img_url"    : list(images.values())[:2],                        
+                    {
+                        "name": product.name,
+                        "price": product.price,
+                        "colors": list(product.colors.all().values()),
+                        "colors_num": len(list(product.colors.values())),
+                        "fit": product.fit.name,
+                        "img_url": list(images.values())[:2],
                     }
                 )
             return JsonResponse({"results": result}, status=200)
-        
+
         except KeyError:
-            return JsonResponse({'MESSAGE':'Page Does Not Exists'}, status=404)
+            return JsonResponse({"MESSAGE": "Page Does Not Exists"}, status=404)
