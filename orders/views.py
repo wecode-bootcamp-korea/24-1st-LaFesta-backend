@@ -3,6 +3,7 @@ import json
 from django.http import JsonResponse
 from django.views import View
 from django.db import transaction
+from django.db.models import F, Sum
 
 from .models import Order, OrderStatus, OrderItem, OrderItemStatus
 from core.utils import login_decorator
@@ -45,17 +46,14 @@ class CartView(View):
                     "product_id": cart.product.id,
                     "product_name": cart.product.name,
                     "quantity": cart.quantity,
-                    "price": cart.product.price,
+                    "price": int(cart.product.price),
                     "total_price": int(cart.product.price * cart.quantity),
                 }
                 for cart in carts
             ],
-            "number_of_products": len(carts),
+            "number_of_products": carts.aggregate(number_of_products=Sum("quantity"))["number_of_products"],
+            "net_price": carts.aggregate(net_price=Sum(F("product__price") * F("quantity")))["net_price"],
         }
-
-        results["net_price"] = sum(
-            [product["total_price"] for product in results["products"]]
-        )
 
         return JsonResponse({"results": results}, status=200)
 
