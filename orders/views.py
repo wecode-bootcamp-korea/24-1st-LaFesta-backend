@@ -9,12 +9,13 @@ from core.utils import login_decorator
 
 
 class CartView(View):
+    @login_decorator
     def post(self, request):
         try:
             data = json.loads(request.body)
 
             order, is_order_created = Order.objects.get_or_create(
-                status_id=OrderStatus.Status.ON_CART.value
+                status_id=OrderStatus.Status.ON_CART.value, user=request.user
             )
             order_item, is_order_item_created = OrderItem.objects.get_or_create(
                 product_id=data["product_id"], order_id=order.id
@@ -32,10 +33,10 @@ class CartView(View):
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
+    @login_decorator
     def get(self, request):
-        result = []
         carts = OrderItem.objects.filter(
-            order__status_id=OrderStatus.Status.ON_CART.value
+            order__status_id=OrderStatus.Status.ON_CART.value, order__user=request.user
         )
 
         results = {
@@ -50,10 +51,11 @@ class CartView(View):
                 for cart in carts
             ],
             "number_of_products": len(carts),
-            "net_price": sum(
-                [product["total_price"] for product in result["products"]]
-            ),
         }
+
+        results["net_price"] = sum(
+            [product["total_price"] for product in results["products"]]
+        )
 
         return JsonResponse({"results": results}, status=200)
 
