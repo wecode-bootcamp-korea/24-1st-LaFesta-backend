@@ -93,7 +93,7 @@ class OrderInformationView(View):
             data = json.loads(request.body)
 
             order_on_cart = Order.objects.get(
-                status_id=OrderStatus.Status.ON_CART.value
+                status_id=OrderStatus.Status.ON_CART.value, user=request.user
             )
 
             order_on_cart.address = data["address"]
