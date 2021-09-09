@@ -36,10 +36,12 @@ class ProductListView(View):
     def get(self, request):
         try:
             type_id = request.GET.get("typeId", None)
-            page = int(request.GET.get("page", 1))
-            order = request.GET.get("order",'id')
             color_id = request.GET.getlist("colorId",None) 
             fit_id = request.GET.getlist("fitId", None)
+            search_keyword = request.GET.get("keyword", None)
+
+            order = request.GET.get("order",'id')
+            page = int(request.GET.get("page", 1))
             
             q = Q()
             if type_id:
@@ -48,6 +50,8 @@ class ProductListView(View):
                 q.add(Q(colors__in = color_id), Q.AND)
             if fit_id:
                 q.add(Q(fit__in = fit_id), Q.AND)
+            if search_keyword:
+                q &= Q(name__icontains=search_keyword)
 
             products = Product.objects.filter(q).order_by(order) 
 
