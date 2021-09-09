@@ -96,3 +96,24 @@ class OrderView(View):
 
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
+
+
+class OrderInformationView(View):
+    @login_decorator
+    def patch(self, request):
+        try:
+            data = json.loads(request.body)
+
+            order_on_cart = Order.objects.get(
+                status_id=OrderStatus.Status.ON_CART.value, user=request.user
+            )
+
+            order_on_cart.address = data["address"]
+            order_on_cart.receiver = data["receiver"]
+            order_on_cart.receiver_phone_number = data["receiver_phone_number"]
+            order_on_cart.save()
+
+            return JsonResponse({"message": "ORDER INFORMATION UPDATED"}, status=200)
+
+        except KeyError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
