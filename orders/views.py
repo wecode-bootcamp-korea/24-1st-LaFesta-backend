@@ -2,8 +2,10 @@ import json
 
 from django.http import JsonResponse
 from django.views import View
+from django.db import transaction
 
 from .models import Order, OrderStatus, OrderItem, OrderItemStatus
+from core.utils import login_decorator
 
 
 class CartView(View):
@@ -54,3 +56,29 @@ class CartView(View):
         }
 
         return JsonResponse({"results": results}, status=200)
+
+
+class OrderView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            with transaction.atomic():
+                data = json.loads(request.body)
+
+                order = Order.objects.get(
+                    status_id=OrderStatus.Status.ON_CART.value, user=request.user
+                )
+                order.orderitem_set.all().delete()
+
+                for product in data["products"]:
+                    OrderItem.objects.create(
+                        product_id=product["product_id"],
+                        quantity=product["quantity"],
+                        status_id=OrderItemStatus.Status.DEFAULT.value,
+                        order=order,
+                    )
+
+            return JsonResponse({"message": "ORDER RENEWED"}, status=201)
+
+        except KeyError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
